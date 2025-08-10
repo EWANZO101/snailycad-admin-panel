@@ -28,16 +28,31 @@
             </a>
             <div class="flex items-center lg:order-2">
                 <div class="hidden mt-2 mr-4 sm:inline-block">
-                    <span class="text-sm text-gray-300">Environment Editor</span>
+                    <span class="text-sm text-gray-300">Key-Value Editor</span>
                 </div>
             </div>
             <div class="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1">
                 <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
                     <li>
-                        <a href="/" class="block py-2 pr-4 pl-3 text-white bg-primary-700 rounded lg:bg-transparent lg:text-primary-500 lg:p-0" aria-current="page">.env Editor</a>
+                        <a href="/" class="block py-2 pr-4 pl-3 text-white bg-primary-700 rounded lg:bg-transparent lg:text-primary-500 lg:p-0" aria-current="page">Key-Value Editor</a>
                     </li>
                     <li>
-                        <a href="/commands" class="block py-2 pr-4 pl-3 text-gray-400 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-500 lg:p-0">Commands</a>
+                        <a href="/live-editor" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Live Text Editor</a>
+                    </li>
+                    <li>
+                        <a href="/nginx-editor" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Nginx Config</a>
+                    </li>
+                    <li>
+                        <a href="/commands" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Commands</a>
+                    </li>
+                    <li>
+                        <a href="/backup-manager" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Backups</a>
+                    </li>
+                    <li>
+                        <a href="/config-editor" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Config</a>
+                    </li>
+                    <li>
+                        <a href="/status" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Status</a>
                     </li>
                 </ul>
             </div>
@@ -60,6 +75,24 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+
+        <!-- Editor Mode Notice -->
+        <div class="bg-blue-900/30 border border-blue-800 rounded-lg p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-blue-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                        <h4 class="text-blue-300 font-medium">Key-Value Editor Mode</h4>
+                        <p class="text-blue-200 text-sm">Structured editing with individual fields for each environment variable.</p>
+                    </div>
+                </div>
+                <a href="/live-editor" class="px-4 py-2 text-sm font-medium text-blue-300 bg-blue-900/50 border border-blue-700 rounded hover:bg-blue-900/70 transition-colors">
+                    Switch to Live Text Editor
+                </a>
+            </div>
+        </div>
 
         <!-- Environment Variables Card -->
         <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm">

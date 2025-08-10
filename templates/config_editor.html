@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnailyCAD Admin - Configuration Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a","950":"#172554"}
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-gray-700 px-4 lg:px-6 py-2.5">
+        <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+            <a href="/" class="flex items-center">
+                <span class="self-center text-xl font-semibold whitespace-nowrap text-white">SnailyCAD Admin</span>
+            </a>
+            <div class="flex items-center lg:order-2">
+                <div class="hidden mt-2 mr-4 sm:inline-block">
+                    <span class="text-sm text-gray-300">Configuration Editor</span>
+                </div>
+            </div>
+            <div class="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1">
+                <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+                    <li>
+                        <a href="/" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Key-Value Editor</a>
+                    </li>
+                    <li>
+                        <a href="/live-editor" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Live Text Editor</a>
+                    </li>
+                    <li>
+                        <a href="/nginx-editor" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Nginx Config</a>
+                    </li>
+                    <li>
+                        <a href="/commands" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Commands</a>
+                    </li>
+                    <li>
+                        <a href="/backup-manager" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Backups</a>
+                    </li>
+                    <li>
+                        <a href="/config-editor" class="block py-2 pr-4 pl-3 text-white bg-primary-700 rounded lg:bg-transparent lg:text-primary-500 lg:p-0" aria-current="page">Config</a>
+                    </li>
+                    <li>
+                        <a href="/status" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Status</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="p-6 max-w-7xl mx-auto">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flex items-center p-4 mb-4 text-sm rounded-lg {% if category == 'error' %}text-red-800 border border-red-300 bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800{% else %}text-green-800 border border-green-300 bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800{% endif %}" role="alert">
+                        <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div><span class="font-medium">{{ message }}</span></div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-white mb-2">Configuration Editor</h2>
+            <p class="text-gray-400">Edit the admin panel configuration settings</p>
+        </div>
+
+        <!-- Warning Notice -->
+        <div class="bg-yellow-900/30 border border-yellow-800 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-yellow-400 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                    <h4 class="text-yellow-300 font-medium">Important Security Notice</h4>
+                    <p class="text-yellow-200 text-sm mt-1">
+                        This configuration file contains sensitive security settings including IP whitelist and database passwords. 
+                        Incorrect changes may lock you out of the admin panel or compromise security.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Editor -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm">
+            <!-- Editor Header -->
+            <div class="p-4 border-b border-gray-700 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <h3 class="text-lg font-semibold text-white">config.py</h3>
+                    <div id="validation-status" class="hidden">
+                        <span id="validation-badge" class="px-2 py-1 text-xs font-medium rounded-full"></span>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="testConfig()" class="px-3 py-1 text-xs font-medium text-blue-300 bg-blue-900/30 border border-blue-800 rounded hover:bg-blue-900/50">
+                        Test Config
+                    </button>
+                    <button onclick="saveConfig()" class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded hover:bg-primary-700 focus:ring-4 focus:ring-primary-300">
+                        Save Configuration
+                    </button>
+                </div>
+            </div>
+
+            <!-- Editor Content -->
+            <div class="relative">
+                <textarea 
+                    id="config-editor" 
+                    class="w-full h-96 p-4 bg-gray-900 text-gray-100 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 border-0" 
+                    placeholder="# Configuration file for SnailyCAD Admin Panel
+# Edit carefully - incorrect settings may lock you out
+
+WHITELISTED_IPS = [
+    '127.0.0.1',
+    '::1',
+    # Add your IP addresses here
+]
+
+DB_PASSWORD = 'your-database-password'
+"
+                    spellcheck="false"
+                >{{ config_content }}</textarea>
+            </div>
+
+            <!-- Footer with tips -->
+            <div class="p-4 border-t border-gray-700 bg-gray-750">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-400">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Always test before saving
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        Backups created automatically
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        Restart required after save
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Guide -->
+        <div class="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-white mb-4">Configuration Guide</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h5 class="text-sm font-medium text-gray-300 mb-2">IP Whitelist (WHITELISTED_IPS)</h5>
+                    <p class="text-sm text-gray-400 mb-3">List of IP addresses allowed to access the admin panel:</p>
+                    <ul class="text-sm text-gray-400 space-y-1">
+                        <li>• Use string format: <code class="bg-gray-700 px-1 rounded">'192.168.1.100'</code></li>
+                        <li>• IPv6 supported: <code class="bg-gray-700 px-1 rounded">'::1'</code></li>
+                        <li>• Always include localhost: <code class="bg-gray-700 px-1 rounded">'127.0.0.1'</code></li>
+                        <li class="text-yellow-400">• Don't remove your current IP!</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-sm font-medium text-gray-300 mb-2">Database Settings</h5>
+                    <p class="text-sm text-gray-400 mb-3">PostgreSQL connection settings:</p>
+                    <ul class="text-sm text-gray-400 space-y-1">
+                        <li>• <code class="bg-gray-700 px-1 rounded">DB_PASSWORD</code>: PostgreSQL password</li>
+                        <li>• <code class="bg-gray-700 px-1 rounded">DB_NAME</code>: Database name (default: snaily-cad-v4)</li>
+                        <li>• <code class="bg-gray-700 px-1 rounded">DB_USER</code>: Database user (default: postgres)</li>
+                        <li>• <code class="bg-gray-700 px-1 rounded">DB_HOST</code>: Database host (default: localhost)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div id="test-results" class="hidden mt-6">
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <h4 class="text-lg font-semibold text-white mb-3">Configuration Test Results</h4>
+                <div id="test-content"></div>
+            </div>
+        </div>
+
+        <!-- Restart Panel -->
+        <div class="mt-6 bg-orange-900/30 border border-orange-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-orange-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                        <h4 class="text-orange-300 font-medium">Restart Required</h4>
+                        <p class="text-orange-200 text-sm">Changes will take effect after restarting the admin panel</p>
+                    </div>
+                </div>
+                <button onclick="restartAdminPanel()" class="px-4 py-2 text-sm font-medium text-orange-300 bg-orange-900/50 border border-orange-700 rounded hover:bg-orange-900/70 transition-colors">
+                    Restart Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div class="flex items-center space-x-3">
+                    <svg class="animate-spin h-5 w-5 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-white">Processing...</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script>
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-600 text-white' :
+                type === 'error' ? 'bg-red-600 text-white' :
+                type === 'warning' ? 'bg-yellow-600 text-white' :
+                'bg-blue-600 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        async function testConfig() {
+            const configContent = document.getElementById('config-editor').value;
+            
+            document.getElementById('loading').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/test-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        config_content: configContent
+                    })
+                });
+
+                const result = await response.json();
+                showTestResults(result);
+                
+            } catch (error) {
+                showNotification(`Test error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        function showTestResults(result) {
+            const resultsContainer = document.getElementById('test-results');
+            const contentDiv = document.getElementById('test-content');
+            const statusDiv = document.getElementById('validation-status');
+            const badge = document.getElementById('validation-badge');
+
+            if (result.success) {
+                contentDiv.innerHTML = '<div class="text-green-400 flex items-center"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>Configuration is valid!</div>';
+                
+                badge.className = 'px-2 py-1 text-xs font-medium rounded-full bg-green-900/30 text-green-300 border border-green-800';
+                badge.textContent = 'Valid';
+                
+                showNotification('Configuration test passed!', 'success');
+            } else {
+                contentDiv.innerHTML = `<div class="text-red-400 flex items-start"><svg class="w-5 h-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg><div><strong>Configuration Error:</strong><br>${result.error}</div></div>`;
+                
+                badge.className = 'px-2 py-1 text-xs font-medium rounded-full bg-red-900/30 text-red-300 border border-red-800';
+                badge.textContent = 'Error';
+                
+                showNotification(`Configuration error: ${result.error}`, 'error');
+            }
+
+            statusDiv.classList.remove('hidden');
+            resultsContainer.classList.remove('hidden');
+        }
+
+        async function saveConfig() {
+            if (!confirm('Are you sure you want to save the configuration? The admin panel will need to be restarted for changes to take effect.')) {
+                return;
+            }
+
+            const configContent = document.getElementById('config-editor').value;
+            
+            document.getElementById('loading').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/save-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        config_content: configContent
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Configuration saved successfully!', 'success');
+                } else {
+                    showNotification(`Save error: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                showNotification(`Network error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        async function restartAdminPanel() {
+            if (!confirm('This will restart the admin panel service. You may need to refresh the page after a few seconds. Continue?')) {
+                return;
+            }
+
+            document.getElementById('loading').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/restart-admin', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Admin panel restart initiated. Please refresh in a few seconds.', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 5000);
+                } else {
+                    showNotification(`Restart failed: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                showNotification(`Network error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // Auto-test on content change
+        let testTimeout;
+        document.getElementById('config-editor').addEventListener('input', function() {
+            clearTimeout(testTimeout);
+            testTimeout = setTimeout(() => {
+                // Auto-test configuration after 2 seconds of no changes
+                // testConfig();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

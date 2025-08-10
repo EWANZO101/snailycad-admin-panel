@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnailyCAD Admin - Nginx Configuration Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a","950":"#172554"}
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .line-numbers {
+            counter-reset: line;
+        }
+        .line-numbers .line:before {
+            counter-increment: line;
+            content: counter(line);
+            display: inline-block;
+            width: 3em;
+            padding-right: 0.5em;
+            margin-right: 0.5em;
+            color: #6b7280;
+            text-align: right;
+            border-right: 1px solid #374151;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-gray-700 px-4 lg:px-6 py-2.5">
+        <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+            <a href="/" class="flex items-center">
+                <span class="self-center text-xl font-semibold whitespace-nowrap text-white">SnailyCAD Admin</span>
+            </a>
+            <div class="flex items-center lg:order-2">
+                <div class="hidden mt-2 mr-4 sm:inline-block">
+                    <span class="text-sm text-gray-300">Nginx Editor</span>
+                </div>
+            </div>
+            <div class="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1">
+                <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+                    <li>
+                        <a href="/" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Key-Value Editor</a>
+                    </li>
+                    <li>
+                        <a href="/live-editor" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Live Text Editor</a>
+                    </li>
+                    <li>
+                        <a href="/nginx-editor" class="block py-2 pr-4 pl-3 text-white bg-primary-700 rounded lg:bg-transparent lg:text-primary-500 lg:p-0" aria-current="page">Nginx Config</a>
+                    </li>
+                    <li>
+                        <a href="/commands" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Commands</a>
+                    </li>
+                    <li>
+                        <a href="/backup-manager" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Backups</a>
+                    </li>
+                    <li>
+                        <a href="/config-editor" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Config</a>
+                    </li>
+                    <li>
+                        <a href="/status" class="block py-2 pr-4 pl-3 text-gray-400 hover:text-primary-500 lg:p-0">Status</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="p-6 max-w-7xl mx-auto">
+        <!-- Critical Warning -->
+        <div class="bg-red-900/30 border border-red-800 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <svg class="w-6 h-6 text-red-400 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                    <h4 class="text-red-300 font-bold text-lg">⚠️ CRITICAL WARNING</h4>
+                    <p class="text-red-200 text-sm mt-1">
+                        You are editing the main Nginx configuration file. Incorrect changes can break your web server and make your site inaccessible. 
+                        <strong>Always validate configuration before saving</strong> and ensure you have SSH access as a backup.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Status Bar -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div id="file-status" class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span class="text-sm text-gray-300">File: <code class="bg-gray-700 px-2 py-1 rounded">{{ file_path }}</code></span>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        Last modified: <span id="last-modified">{{ last_modified }}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div id="nginx-status-indicator" class="w-3 h-3 bg-gray-500 rounded-full"></div>
+                        <span id="nginx-status-text" class="text-sm text-gray-400">Checking nginx status...</span>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="checkNginxStatus()" class="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Refresh Status
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Controls -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Nginx Service Controls</h3>
+            <div class="flex flex-wrap gap-3">
+                <button onclick="validateConfig()" class="px-4 py-2 text-sm font-medium text-blue-300 bg-blue-900/30 border border-blue-800 rounded hover:bg-blue-900/50">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Test Configuration
+                </button>
+                <button onclick="reloadNginx()" class="px-4 py-2 text-sm font-medium text-green-300 bg-green-900/30 border border-green-800 rounded hover:bg-green-900/50">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Reload Config
+                </button>
+                <button onclick="restartNginx()" class="px-4 py-2 text-sm font-medium text-orange-300 bg-orange-900/30 border border-orange-800 rounded hover:bg-orange-900/50">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Restart Service
+                </button>
+            </div>
+        </div>
+
+        <!-- Editor Container -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm">
+            <!-- Editor Header -->
+            <div class="p-4 border-b border-gray-700 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <h3 class="text-lg font-semibold text-white">nginx.conf Editor</h3>
+                    <div id="validation-status" class="hidden">
+                        <span id="validation-badge" class="px-2 py-1 text-xs font-medium rounded-full"></span>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="auto-save-toggle" onclick="toggleAutoSave()" class="px-3 py-1 text-xs font-medium text-gray-300 bg-gray-700 rounded hover:bg-gray-600">
+                        <span id="auto-save-text">Enable Auto-save</span>
+                    </button>
+                    <button onclick="validateConfig()" class="px-3 py-1 text-xs font-medium text-blue-300 bg-blue-900/30 border border-blue-800 rounded hover:bg-blue-900/50">
+                        Validate
+                    </button>
+                    <button onclick="saveFile()" class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded hover:bg-primary-700 focus:ring-4 focus:ring-primary-300">
+                        Save Configuration
+                    </button>
+                </div>
+            </div>
+
+            <!-- Editor Content -->
+            <div class="relative">
+                <textarea 
+                    id="nginx-editor" 
+                    class="w-full h-96 p-4 bg-gray-900 text-gray-100 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 border-0" 
+                    placeholder="# Nginx Configuration
+# Edit carefully - incorrect settings can break the web server
+
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 768;
+}
+
+http {
+    # Basic Settings
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    
+    # SSL Settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    
+    # Logging Settings
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+    
+    # Gzip Settings
+    gzip on;
+    
+    # Virtual Host Configs
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}
+"
+                    spellcheck="false"
+                >{{ nginx_content }}</textarea>
+                
+                <!-- Line numbers overlay -->
+                <div id="line-numbers" class="absolute left-0 top-0 p-4 pointer-events-none text-gray-500 font-mono text-sm line-numbers"></div>
+            </div>
+
+            <!-- Footer with tips -->
+            <div class="p-4 border-t border-gray-700 bg-gray-750">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs text-gray-400">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Always test before saving
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        Backups created automatically
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        Ctrl+S to quick save
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" clip-rule="evenodd"></path>
+                        </svg>
+                        Reload to apply changes
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation Results -->
+        <div id="validation-results" class="hidden mt-6">
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <h4 class="text-lg font-semibold text-white mb-3">Configuration Test Results</h4>
+                <div id="validation-content"></div>
+            </div>
+        </div>
+
+        <!-- Nginx Configuration Guide -->
+        <div class="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-white mb-4">Common Nginx Configuration Blocks</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h5 class="text-sm font-medium text-gray-300 mb-2">Reverse Proxy (SnailyCAD)</h5>
+                    <pre class="text-xs text-gray-400 bg-gray-900 p-3 rounded overflow-x-auto"><code>server {
+    listen 80;
+    server_name your-domain.com;
+    
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+                </div>
+                <div>
+                    <h5 class="text-sm font-medium text-gray-300 mb-2">SSL Configuration</h5>
+                    <pre class="text-xs text-gray-400 bg-gray-900 p-3 rounded overflow-x-auto"><code>server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+    
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
+    
+    location / {
+        proxy_pass http://localhost:3000;
+    }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-save indicator -->
+        <div id="auto-save-indicator" class="hidden fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg">
+            <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>Auto-saving...</span>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div class="flex items-center space-x-3">
+                    <svg class="animate-spin h-5 w-5 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-white">Processing...</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script>
+        let autoSaveEnabled = false;
+        let autoSaveTimeout = null;
+        let hasUnsavedChanges = false;
+
+        const editor = document.getElementById('nginx-editor');
+        const fileStatus = document.getElementById('file-status');
+        const lastModifiedSpan = document.getElementById('last-modified');
+
+        // Initialize line numbers
+        function updateLineNumbers() {
+            const lineNumbers = document.getElementById('line-numbers');
+            const lines = editor.value.split('\n');
+            lineNumbers.innerHTML = lines.map((_, i) => `<div class="line"></div>`).join('');
+        }
+
+        // Handle editor input
+        editor.addEventListener('input', function() {
+            hasUnsavedChanges = true;
+            fileStatus.className = 'w-3 h-3 bg-yellow-500 rounded-full';
+            updateLineNumbers();
+            
+            if (autoSaveEnabled) {
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(() => {
+                    saveFile(true);
+                }, 3000); // Longer delay for nginx config
+            }
+        });
+
+        editor.addEventListener('scroll', function() {
+            document.getElementById('line-numbers').scrollTop = editor.scrollTop;
+        });
+
+        // Keyboard shortcuts
+        editor.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveFile();
+            }
+        });
+
+        // Auto-save toggle
+        function toggleAutoSave() {
+            autoSaveEnabled = !autoSaveEnabled;
+            const toggle = document.getElementById('auto-save-toggle');
+            const text = document.getElementById('auto-save-text');
+            
+            if (autoSaveEnabled) {
+                toggle.className = 'px-3 py-1 text-xs font-medium text-green-300 bg-green-900/30 border border-green-800 rounded';
+                text.textContent = 'Auto-save ON';
+            } else {
+                toggle.className = 'px-3 py-1 text-xs font-medium text-gray-300 bg-gray-700 rounded hover:bg-gray-600';
+                text.textContent = 'Enable Auto-save';
+                clearTimeout(autoSaveTimeout);
+            }
+        }
+
+        // Save file
+        async function saveFile(isAutoSave = false) {
+            if (isAutoSave && !hasUnsavedChanges) return;
+
+            const indicator = document.getElementById('auto-save-indicator');
+            if (isAutoSave) {
+                indicator.classList.remove('hidden');
+            } else {
+                document.getElementById('loading').classList.remove('hidden');
+            }
+
+            try {
+                const response = await fetch('/save-nginx', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        nginx_content: editor.value
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    hasUnsavedChanges = false;
+                    fileStatus.className = 'w-3 h-3 bg-green-500 rounded-full';
+                    lastModifiedSpan.textContent = result.last_modified;
+                    
+                    if (!isAutoSave) {
+                        showNotification('Nginx configuration saved successfully!', 'success');
+                    }
+                } else {
+                    fileStatus.className = 'w-3 h-3 bg-red-500 rounded-full';
+                    showNotification(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                fileStatus.className = 'w-3 h-3 bg-red-500 rounded-full';
+                showNotification(`Network error: ${error.message}`, 'error');
+            } finally {
+                if (isAutoSave) {
+                    setTimeout(() => {
+                        indicator.classList.add('hidden');
+                    }, 1000);
+                } else {
+                    document.getElementById('loading').classList.add('hidden');
+                }
+            }
+        }
+
+        // Validate configuration
+        async function validateConfig() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                
+                const response = await fetch('/validate-nginx', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        nginx_content: editor.value
+                    })
+                });
+
+                const result = await response.json();
+                showValidationResults(result);
+            } catch (error) {
+                showNotification(`Validation error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // Show validation results
+        function showValidationResults(result) {
+            const resultsContainer = document.getElementById('validation-results');
+            const contentDiv = document.getElementById('validation-content');
+            const statusDiv = document.getElementById('validation-status');
+            const badge = document.getElementById('validation-badge');
+
+            if (result.success) {
+                let html = '';
+                
+                if (result.is_valid) {
+                    html = `<div class="text-green-400 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        Configuration syntax is valid!
+                    </div>`;
+                    if (result.output) {
+                        html += `<pre class="mt-2 text-xs text-gray-400 bg-gray-900 p-2 rounded">${result.output}</pre>`;
+                    }
+                    badge.className = 'px-2 py-1 text-xs font-medium rounded-full bg-green-900/30 text-green-300 border border-green-800';
+                    badge.textContent = 'Valid';
+                } else {
+                    html = `<div class="text-red-400">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div>
+                                <strong>Configuration has syntax errors:</strong>
+                                <ul class="mt-2 space-y-1">`;
+                    
+                    result.errors.forEach(error => {
+                        html += `<li class="text-sm">• ${error}</li>`;
+                    });
+                    
+                    html += `</ul></div></div>`;
+                    badge.className = 'px-2 py-1 text-xs font-medium rounded-full bg-red-900/30 text-red-300 border border-red-800';
+                    badge.textContent = 'Invalid';
+                }
+                
+                contentDiv.innerHTML = html;
+                statusDiv.classList.remove('hidden');
+                resultsContainer.classList.remove('hidden');
+            } else {
+                showNotification(`Validation failed: ${result.error}`, 'error');
+            }
+        }
+
+        // Nginx service operations
+        async function reloadNginx() {
+            if (!confirm('This will reload the nginx configuration. Make sure your configuration is valid first. Continue?')) {
+                return;
+            }
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const response = await fetch('/reload-nginx', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Nginx configuration reloaded successfully!', 'success');
+                    checkNginxStatus();
+                } else {
+                    showNotification(`Failed to reload nginx: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Network error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        async function restartNginx() {
+            if (!confirm('This will restart the nginx service. This may cause brief downtime. Make sure your configuration is valid first. Continue?')) {
+                return;
+            }
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const response = await fetch('/restart-nginx', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Nginx service restarted successfully!', 'success');
+                    checkNginxStatus();
+                } else {
+                    showNotification(`Failed to restart nginx: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Network error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        async function checkNginxStatus() {
+            try {
+                const response = await fetch('/nginx-status');
+                const result = await response.json();
+                
+                const statusIndicator = document.getElementById('nginx-status-indicator');
+                const statusText = document.getElementById('nginx-status-text');
+                
+                if (result.success) {
+                    if (result.is_active) {
+                        statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
+                        statusText.textContent = `Nginx running (${result.version})`;
+                    } else {
+                        statusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
+                        statusText.textContent = 'Nginx not running';
+                    }
+                    
+                    if (!result.config_valid) {
+                        statusText.textContent += ' - Config invalid';
+                        statusIndicator.className = 'w-3 h-3 bg-yellow-500 rounded-full';
+                    }
+                } else {
+                    statusIndicator.className = 'w-3 h-3 bg-gray-500 rounded-full';
+                    statusText.textContent = 'Status check failed';
+                }
+            } catch (error) {
+                console.error('Error checking nginx status:', error);
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-600 text-white' :
+                type === 'error' ? 'bg-red-600 text-white' :
+                type === 'warning' ? 'bg-yellow-600 text-white' :
+                'bg-blue-600 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Initialize
+        updateLineNumbers();
+        checkNginxStatus();
+
+        // Check nginx status every 30 seconds
+        setInterval(checkNginxStatus, 30000);
+
+        // Warn before leaving with unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>
