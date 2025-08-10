@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnailyCAD Admin - Commands</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a","950":"#172554"}
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-gray-700 px-4 lg:px-6 py-2.5">
+        <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+            <a href="/" class="flex items-center">
+                <span class="self-center text-xl font-semibold whitespace-nowrap text-white">SnailyCAD Admin</span>
+            </a>
+            <div class="flex items-center lg:order-2">
+                <div class="hidden mt-2 mr-4 sm:inline-block">
+                    <span class="text-sm text-gray-300">Commands</span>
+                </div>
+            </div>
+            <div class="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1">
+                <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+                    <li>
+                        <a href="/" class="block py-2 pr-4 pl-3 text-gray-400 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-500 lg:p-0">.env Editor</a>
+                    </li>
+                    <li>
+                        <a href="/commands" class="block py-2 pr-4 pl-3 text-white bg-primary-700 rounded lg:bg-transparent lg:text-primary-500 lg:p-0" aria-current="page">Commands</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="p-6 max-w-6xl mx-auto">
+        <!-- Discord Management Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-white mb-6">Discord Management</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Disable Discord Auth -->
+                <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-white mb-2">Disable Discord Authentication</h3>
+                        <p class="text-sm text-gray-400 mb-4">Disable the FORCE_DISCORD_AUTH feature in SnailyCAD</p>
+                        <button onclick="disableDiscordAuth()" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                            Disable Discord Auth
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Unlink Discord ID -->
+                <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-white mb-2">Unlink Discord ID</h3>
+                        <p class="text-sm text-gray-400 mb-4">Remove Discord association from a user account</p>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300">Discord ID</label>
+                                <input type="text" id="discord-id" class="bg-gray-600 border border-gray-500 text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 placeholder-gray-400" placeholder="Enter Discord ID">
+                            </div>
+                            <button onclick="unlinkDiscord()" class="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                                Unlink Discord
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ubuntu User Management Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-white mb-6">Ubuntu User Management</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Create User -->
+                <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-white mb-2">Create User</h3>
+                        <p class="text-sm text-gray-400 mb-4">Create a new Ubuntu system user</p>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300">Username</label>
+                                <input type="text" id="create-username" class="bg-gray-600 border border-gray-500 text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 placeholder-gray-400" placeholder="username">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300">Password</label>
+                                <input type="password" id="create-password" class="bg-gray-600 border border-gray-500 text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 placeholder-gray-400" placeholder="password">
+                            </div>
+                            <button onclick="createUser()" class="w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                                Create User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete User -->
+                <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-white mb-2">Delete User</h3>
+                        <p class="text-sm text-gray-400 mb-4">Remove an Ubuntu system user</p>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300">Select User</label>
+                                <select id="delete-username" class="bg-gray-600 border border-gray-500 text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                                    <option value="">Choose a user...</option>
+                                    {% for user in system_users %}
+                                    <option value="{{ user }}">{{ user }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button onclick="deleteUser()" class="w-full text-red-400 hover:text-white border border-red-400 hover:bg-red-500 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                                Delete User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reset Password -->
+                <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-white mb-2">Reset Password</h3>
+                        <p class="text-sm text-gray-400 mb-4">Change a user's password</p>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300">Select User</label>
+                                <select id="reset-username" class="bg-gray-600 border border-gray-500 text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                                    <option value="">Choose a user...</option>
+                                    {% for user in system_users %}
+                                    <option value="{{ user }}">{{ user }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300">New Password</label>
+                                <input type="password" id="reset-password" class="bg-gray-600 border border-gray-500 text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 placeholder-gray-400" placeholder="new password">
+                            </div>
+                            <button onclick="resetPassword()" class="w-full text-white bg-yellow-700 hover:bg-yellow-800 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                                Reset Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Command Output -->
+        <div id="output-section" class="hidden mb-8">
+            <h3 class="text-lg font-semibold text-white mb-4">Command Output</h3>
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <pre id="command-output" class="text-sm text-gray-300 whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div class="flex items-center space-x-3">
+                    <svg class="animate-spin h-5 w-5 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-white">Executing command...</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script>
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        function showOutput(output, isError = false) {
+            const outputSection = document.getElementById('output-section');
+            const outputElement = document.getElementById('command-output');
+            
+            outputElement.textContent = output;
+            outputElement.className = `text-sm whitespace-pre-wrap ${isError ? 'text-red-400' : 'text-green-400'}`;
+            outputSection.classList.remove('hidden');
+            
+            // Scroll to output
+            outputSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function executeCommand(url, data = {}) {
+            showLoading();
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showOutput(result.output || 'Command executed successfully');
+                } else {
+                    showOutput(`Error: ${result.error}`, true);
+                }
+            } catch (error) {
+                showOutput(`Network Error: ${error.message}`, true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function disableDiscordAuth() {
+            if (confirm('Are you sure you want to disable Discord authentication?')) {
+                executeCommand('/disable-discord-auth');
+            }
+        }
+
+        function unlinkDiscord() {
+            const discordId = document.getElementById('discord-id').value.trim();
+            if (!discordId) {
+                alert('Please enter a Discord ID');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to unlink Discord ID: ${discordId}?`)) {
+                executeCommand('/unlink-discord', { discord_id: discordId });
+            }
+        }
+
+        function createUser() {
+            const username = document.getElementById('create-username').value.trim();
+            const password = document.getElementById('create-password').value;
+            
+            if (!username || !password) {
+                alert('Please enter both username and password');
+                return;
+            }
+            
+            if (!/^[a-z][a-z0-9_-]*$/.test(username)) {
+                alert('Username must start with a lowercase letter and contain only lowercase letters, numbers, hyphens, and underscores');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to create user: ${username}?`)) {
+                executeCommand('/create-user', { username: username, password: password }).then(() => {
+                    // Clear form
+                    document.getElementById('create-username').value = '';
+                    document.getElementById('create-password').value = '';
+                    
+                    // Reload page to update user lists
+                    setTimeout(() => location.reload(), 2000);
+                });
+            }
+        }
+
+        function deleteUser() {
+            const username = document.getElementById('delete-username').value;
+            
+            if (!username) {
+                alert('Please select a user to delete');
+                return;
+            }
+            
+            if (confirm(`⚠️ WARNING: This will permanently delete user "${username}" and their home directory. This action cannot be undone!\n\nAre you absolutely sure?`)) {
+                executeCommand('/delete-user', { username: username }).then(() => {
+                    // Reload page to update user lists
+                    setTimeout(() => location.reload(), 2000);
+                });
+            }
+        }
+
+        function resetPassword() {
+            const username = document.getElementById('reset-username').value;
+            const password = document.getElementById('reset-password').value;
+            
+            if (!username || !password) {
+                alert('Please select a user and enter a new password');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to reset the password for user: ${username}?`)) {
+                executeCommand('/reset-password', { username: username, password: password }).then(() => {
+                    // Clear password field
+                    document.getElementById('reset-password').value = '';
+                });
+            }
+        }
+
+        // Clear output when switching between different actions
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+                document.getElementById('output-section').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
